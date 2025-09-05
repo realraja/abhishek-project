@@ -15,7 +15,7 @@ const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const dispatch = useDispatch();
 
-    if (!isUser) return router.push('/login');
+    if (!isUser) router.push('/login');
 
     const handleLogout = async () => {
         const data = await logoutUser({});
