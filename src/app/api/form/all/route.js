@@ -6,7 +6,8 @@ const { userTryCatch } = require("@/utils/authRequests");
 
 export const GET = userTryCatch(async(req,res)=>{
     const forms = await User.find();
-    return ResponseSuccess("Forms retrieved successfully", forms);
+    const formsWithData = forms.filter(form => form.form?.name);
+    return ResponseSuccess("Forms retrieved successfully", formsWithData);
 })
 
 

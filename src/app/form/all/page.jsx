@@ -51,6 +51,7 @@ const AdminDashboard = () => {
     const fetchForm = async () =>{
         const {data} = await axios.get('/api/form/all');
         if(data?.data) setUsers(data.data);
+        console.log(data);
     }
     fetchForm();
     }, [])
@@ -58,7 +59,7 @@ const AdminDashboard = () => {
     // Filter users based on active tab
     const filteredUsers = users.filter(user => {
         if (activeTab === 'all') return true;
-        return user.form.status === activeTab;
+        return user.form?.status === activeTab;
     });
 
     const toggleExpand = (userId) => {
@@ -155,7 +156,7 @@ const AdminDashboard = () => {
                     >
                         <h3 className="text-lg font-semibold text-gray-700 mb-2">Pending Review</h3>
                         <p className="text-3xl font-bold text-yellow-600">
-                            {users.filter(user => user.form.status === 'pending').length}
+                            {users.filter(user => user.form?.status === 'pending').length}
                         </p>
                     </div>
                     <div
@@ -164,7 +165,7 @@ const AdminDashboard = () => {
                     >
                         <h3 className="text-lg font-semibold text-gray-700 mb-2">Approved</h3>
                         <p className="text-3xl font-bold text-green-600">
-                            {users.filter(user => user.form.status === 'approved').length}
+                            {users.filter(user => user.form?.status === 'approved').length}
                         </p>
                     </div>
                     <div
@@ -173,7 +174,7 @@ const AdminDashboard = () => {
                     >
                         <h3 className="text-lg font-semibold text-gray-700 mb-2">Rejected</h3>
                         <p className="text-3xl font-bold text-red-600">
-                            {users.filter(user => user.form.status === 'rejected').length}
+                            {users.filter(user => user.form?.status === 'rejected').length}
                         </p>
                     </div>
                 </div>
@@ -192,19 +193,19 @@ const AdminDashboard = () => {
                             />
                             <TabButton
                                 name="Pending"
-                                count={users.filter(user => user.form.status === 'pending').length}
+                                count={users.filter(user => user.form?.status === 'pending').length}
                                 isActive={activeTab === 'pending'}
                                 onClick={() => setActiveTab('pending')}
                             />
                             <TabButton
                                 name="Approved"
-                                count={users.filter(user => user.form.status === 'approved').length}
+                                count={users.filter(user => user.form?.status === 'approved').length}
                                 isActive={activeTab === 'approved'}
                                 onClick={() => setActiveTab('approved')}
                             />
                             <TabButton
                                 name="Rejected"
-                                count={users.filter(user => user.form.status === 'rejected').length}
+                                count={users.filter(user => user.form?.status === 'rejected').length}
                                 isActive={activeTab === 'rejected'}
                                 onClick={() => setActiveTab('rejected')}
                             />
@@ -234,10 +235,10 @@ const AdminDashboard = () => {
                                     </div>
 
                                     <div className="flex items-center space-x-4">
-                                        {getStatusBadge(user.form.status)}
+                                        {getStatusBadge(user.form?.status)}
                                         <span className="text-sm text-gray-500 flex items-center">
                                             <FiCalendar className="mr-1" size={14} />
-                                            {formatDate(user.form.submittedDate)}
+                                            {formatDate(user.form?.submittedDate)}
                                         </span>
                                         {expandedUserId === user._id ? (
                                             <FiChevronUp className="text-gray-500" />
@@ -259,23 +260,23 @@ const AdminDashboard = () => {
                                                 <div className="space-y-2">
                                                     <div className="flex">
                                                         <span className="text-gray-600 w-32">Name:</span>
-                                                        <span className="font-medium">{user.form.name}</span>
+                                                        <span className="font-medium">{user.form?.name}</span>
                                                     </div>
                                                     <div className="flex">
                                                         <span className="text-gray-600 w-32">Father's Name:</span>
-                                                        <span className="font-medium">{user.form.fatherName}</span>
+                                                        <span className="font-medium">{user.form?.fatherName}</span>
                                                     </div>
                                                     <div className="flex">
                                                         <span className="text-gray-600 w-32">Mother's Name:</span>
-                                                        <span className="font-medium">{user.form.motherName}</span>
+                                                        <span className="font-medium">{user.form?.motherName}</span>
                                                     </div>
                                                     <div className="flex">
                                                         <span className="text-gray-600 w-32">Location:</span>
-                                                        <span className="font-medium">{user.form.location}</span>
+                                                        <span className="font-medium">{user.form?.location}</span>
                                                     </div>
                                                     <div className="flex">
                                                         <span className="text-gray-600 w-32">Pincode:</span>
-                                                        <span className="font-medium">{user.form.pincode}</span>
+                                                        <span className="font-medium">{user.form?.pincode}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -286,26 +287,26 @@ const AdminDashboard = () => {
                                                 <div className="space-y-2">
                                                     <div className="flex">
                                                         <span className="text-gray-600 w-32">Class:</span>
-                                                        <span className="font-medium">{user.form.educationLevel}</span>
+                                                        <span className="font-medium">{user.form?.educationLevel}</span>
                                                     </div>
-                                                    {user.form.stream && (
+                                                    {user.form?.stream && (
                                                         <div className="flex">
                                                             <span className="text-gray-600 w-32">Stream:</span>
-                                                            <span className="font-medium">{user.form.stream}</span>
+                                                            <span className="font-medium">{user.form?.stream}</span>
                                                         </div>
                                                     )}
                                                     <div className="flex">
                                                         <span className="text-gray-600 w-32">Percentage:</span>
-                                                        <span className="font-medium">{user.form.percentage}%</span>
+                                                        <span className="font-medium">{user.form?.percentage}%</span>
                                                     </div>
                                                     <div className="flex">
                                                         <span className="text-gray-600 w-32">Extracurricular:</span>
-                                                        <span className="font-medium">{user.form.extracurricular}</span>
+                                                        <span className="font-medium">{user.form?.extracurricular}</span>
                                                     </div>
-                                                    {user.form.hasJob && (
+                                                    {user.form?.hasJob && (
                                                         <div className="flex">
                                                             <span className="text-gray-600 w-32">Job Details:</span>
-                                                            <span className="font-medium">{user.form.jobDetails}</span>
+                                                            <span className="font-medium">{user.form?.jobDetails}</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -317,16 +318,16 @@ const AdminDashboard = () => {
                                             <h4 className="font-medium text-gray-700 mb-3">Documents</h4>
                                             <div className="flex space-x-4">
                                                 <a
-                                                    href={user.form.marksheet}
+                                                    href={user.form?.marksheet}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="flex items-center px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
                                                 >
                                                     <FiEye className="mr-2" /> View Marksheet
                                                 </a>
-                                                {user.form.certificate && (
+                                                {user.form?.certificate && (
                                                     <a
-                                                        href={user.form.certificate}
+                                                        href={user.form?.certificate}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="flex items-center px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
@@ -338,7 +339,7 @@ const AdminDashboard = () => {
                                         </div>
 
                                         {/* Action Buttons */}
-                                        {user.form.status === 'pending' && (
+                                        {user.form?.status === 'pending' && (
                                             <div className="mt-6 pt-4 border-t border-gray-200 flex space-x-4">
                                                 <button
                                                     onClick={() => handleApprove(user._id)}
@@ -356,9 +357,9 @@ const AdminDashboard = () => {
                                         )}
 
                                         {/* Status Message */}
-                                        {user.form.status !== 'pending' && (
-                                            <div className={`mt-4 p-3 rounded-lg ${user.form.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                                This form has been <span className="font-medium">{user.form.status}</span>.
+                                        {user.form?.status !== 'pending' && (
+                                            <div className={`mt-4 p-3 rounded-lg ${user.form?.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                This form has been <span className="font-medium">{user.form?.status}</span>.
                                             </div>
                                         )}
                                     </div>

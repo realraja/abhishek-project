@@ -17,8 +17,10 @@ const Header = () => {
 
     useEffect(() => {
         if (!isUser) return router.push('/login');
-    }, [isUser])
+    }, [isUser, router]);
+    // if (!isUser) router.push('/login');
 
+    
     const handleLogout = async () => {
         const data = await logoutUser({});
         if (data.success) {
@@ -36,7 +38,7 @@ const Header = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-20">
                     {/* Logo and Title */}
-                    <div onClick={()=> router.push('/')} className="flex cursor-pointer items-center">
+                    <div onClick={() => isUser && router.push('/')} className="flex cursor-pointer items-center">
                         <div className="flex-shrink-0 flex items-center">
                             <Image
                                 src={'/IMG_2348.JPG'}
@@ -45,7 +47,7 @@ const Header = () => {
                                 alt='logo'
                                 className="rounded-full border-4 border-white shadow-md"
                             />
-                            <span className="ml-3 text-xl font-bold text-white">
+                            <span className="ml-3 text-xl font-bold text-white mr-6 max-w-[70vw]">
                                 शिव गोरक्षनाथ (योगी) समाज सेवा समिति जैतारण
                             </span>
                         </div>
