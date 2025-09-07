@@ -1,10 +1,11 @@
 'use client';
 
+import { DialogContext } from '@/components/Dialog';
 import axios from 'axios';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { FiCheckCircle, FiXCircle, FiChevronDown, FiChevronUp, FiUser, FiMail, FiCalendar, FiEye } from 'react-icons/fi';
+import { FiCheckCircle, FiXCircle, FiChevronDown, FiChevronUp, FiUser, FiMail, FiCalendar, FiEye, FiTrash2, FiAlertTriangle } from 'react-icons/fi';
 
 
 
@@ -40,21 +41,28 @@ export default function Dashboard() {
 
 
 
+// import { useState, useEffect } from 'react';
+// import { FiCheckCircle, FiXCircle, FiChevronDown, FiChevronUp, FiUser, FiMail, FiCalendar, FiEye, FiTrash2, FiAlertTriangle } from 'react-icons/fi';
+// import axios from 'axios';
+// import { toast } from 'react-hot-toast';
 
 const AdminDashboard = () => {
     const [expandedUserId, setExpandedUserId] = useState(null);
-    const [activeTab, setActiveTab] = useState('all'); // 'all', 'pending', 'approved', 'rejected'
-
+    const [activeTab, setActiveTab] = useState('all');
     const [users, setUsers] = useState([]);
+    const [deleteConfirm, setDeleteConfirm] = useState(null);
 
     useEffect(() => {
-    const fetchForm = async () =>{
-        const {data} = await axios.get('/api/form/all');
-        if(data?.data) setUsers(data.data);
-        console.log(data);
-    }
-    fetchForm();
-    }, [])
+        const fetchForm = async () => {
+            try {
+                const { data } = await axios.get('/api/form/all');
+                if (data?.data) setUsers(data.data);
+            } catch (error) {
+                toast.error('Failed to fetch forms');
+            }
+        };
+        fetchForm();
+    }, []);
 
     // Filter users based on active tab
     const filteredUsers = users.filter(user => {
@@ -65,32 +73,73 @@ const AdminDashboard = () => {
     const toggleExpand = (userId) => {
         if (expandedUserId === userId) {
             setExpandedUserId(null);
+            setDeleteConfirm(null); // Close delete confirmation when collapsing
         } else {
             setExpandedUserId(userId);
         }
     };
 
-    const handleApprove = async(userId) => {
-        setUsers(users.map(user =>
-            user._id === userId
-                ? { ...user, form: { ...user.form, status: 'approved' } }
-                : user
-        ));
-        // In a real app, you would make an API call here
-        const {data} = await axios.put('/api/form/all',{id:userId,status:'approved'});
-        if(data?.message) toast.success(data.message);
+    const handleApprove = async (userId) => {
+        try {
+            setUsers(users.map(user =>
+                user._id === userId
+                    ? { ...user, form: { ...user.form, status: 'approved' } }
+                    : user
+            ));
+            
+            const { data } = await axios.put('/api/form/all', { id: userId, status: 'approved' });
+            if (data?.message) toast.success(data.message);
+        } catch (error) {
+            toast.error('Failed to approve form');
+            // Revert on error
+            setUsers(users.map(user =>
+                user._id === userId
+                    ? { ...user, form: { ...user.form, status: 'pending' } }
+                    : user
+            ));
+        }
     };
 
     const handleReject = async (userId) => {
-        setUsers(users.map(user =>
-            user._id === userId
-                ? { ...user, form: { ...user.form, status: 'rejected' } }
-                : user
-        ));
-        // In a real app, you would make an API call here
-        // In a real app, you would make an API call here
-        const {data} = await axios.put('/api/form/all',{id:userId,status:'rejected'});
-        if(data?.message) toast.success(data.message);
+        try {
+            setUsers(users.map(user =>
+                user._id === userId
+                    ? { ...user, form: { ...user.form, status: 'rejected' } }
+                    : user
+            ));
+            
+            const { data } = await axios.put('/api/form/all', { id: userId, status: 'rejected' });
+            if (data?.message) toast.success(data.message);
+        } catch (error) {
+            toast.error('Failed to reject form');
+            // Revert on error
+            setUsers(users.map(user =>
+                user._id === userId
+                    ? { ...user, form: { ...user.form, status: 'pending' } }
+                    : user
+            ));
+        }
+    };
+
+    const handleDelete = async (userId) => {
+        try {
+            // API call to delete the form
+            const { data } = await axios.patch(`/api/form/all`,{id:userId});
+            
+            if (data?.message) {
+                toast.success(data.message);
+                // Remove user from local state
+                setUsers(users.filter(user => user._id !== userId));
+                setDeleteConfirm(null);
+                
+                // If the deleted user was expanded, collapse the section
+                if (expandedUserId === userId) {
+                    setExpandedUserId(null);
+                }
+            }
+        } catch (error) {
+            toast.error('Failed to delete form');
+        }
     };
 
     const getStatusBadge = (status) => {
@@ -122,9 +171,9 @@ const AdminDashboard = () => {
         return (
             <button
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${isActive
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'text-gray-600 hover:bg-gray-100'
-                    }`}
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
                 onClick={onClick}
             >
                 {name} {count > 0 && `(${count})`}
@@ -251,113 +300,158 @@ const AdminDashboard = () => {
                                 {/* Expanded Details */}
                                 {expandedUserId === user._id && (
                                     <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            {/* Personal Details */}
-                                            <div>
-                                                <h4 className="font-medium text-gray-700 mb-3 flex items-center">
-                                                    <FiUser className="mr-2" /> Personal Details
-                                                </h4>
-                                                <div className="space-y-2">
-                                                    <div className="flex">
-                                                        <span className="text-gray-600 w-32">Name:</span>
-                                                        <span className="font-medium">{user.form?.name}</span>
-                                                    </div>
-                                                    <div className="flex">
-                                                        <span className="text-gray-600 w-32">Father's Name:</span>
-                                                        <span className="font-medium">{user.form?.fatherName}</span>
-                                                    </div>
-                                                    <div className="flex">
-                                                        <span className="text-gray-600 w-32">Mother's Name:</span>
-                                                        <span className="font-medium">{user.form?.motherName}</span>
-                                                    </div>
-                                                    <div className="flex">
-                                                        <span className="text-gray-600 w-32">Location:</span>
-                                                        <span className="font-medium">{user.form?.location}</span>
-                                                    </div>
-                                                    <div className="flex">
-                                                        <span className="text-gray-600 w-32">Pincode:</span>
-                                                        <span className="font-medium">{user.form?.pincode}</span>
+                                        {/* Delete Confirmation */}
+                                        {deleteConfirm === user._id ? (
+                                            <DialogContext showDialog={true } onClose={() => setDeleteConfirm(null)} title="Confirm Deletion" className="max-w-lg">
+                                                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                                                <div className="flex items-start">
+                                                    <FiAlertTriangle className="text-red-500 text-xl mt-0.5 mr-3 flex-shrink-0" />
+                                                    <div>
+                                                        <h4 className="font-medium text-red-800 mb-2">Confirm Deletion</h4>
+                                                        <p className="text-red-700 mb-4">
+                                                            Are you sure you want to delete {user.name}'s form? This action cannot be undone.
+                                                        </p>
+                                                        <div className="flex space-x-3">
+                                                            <button
+                                                                onClick={() => handleDelete(user._id)}
+                                                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                                                            >
+                                                                Yes, Delete
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setDeleteConfirm(null)}
+                                                                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
+                                            </DialogContext>
+                                        ) : (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                {/* Personal Details */}
+                                                <div>
+                                                    <h4 className="font-medium text-gray-700 mb-3 flex items-center">
+                                                        <FiUser className="mr-2" /> Personal Details
+                                                    </h4>
+                                                    <div className="space-y-2">
+                                                        <div className="flex">
+                                                            <span className="text-gray-600 w-32">Name:</span>
+                                                            <span className="font-medium">{user.form?.name}</span>
+                                                        </div>
+                                                        <div className="flex">
+                                                            <span className="text-gray-600 w-32">Father's Name:</span>
+                                                            <span className="font-medium">{user.form?.fatherName}</span>
+                                                        </div>
+                                                        <div className="flex">
+                                                            <span className="text-gray-600 w-32">Mother's Name:</span>
+                                                            <span className="font-medium">{user.form?.motherName}</span>
+                                                        </div>
+                                                        <div className="flex">
+                                                            <span className="text-gray-600 w-32">Location:</span>
+                                                            <span className="font-medium">{user.form?.location}</span>
+                                                        </div>
+                                                        <div className="flex">
+                                                            <span className="text-gray-600 w-32">Pincode:</span>
+                                                            <span className="font-medium">{user.form?.pincode}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
 
-                                            {/* Educational Details */}
-                                            <div>
-                                                <h4 className="font-medium text-gray-700 mb-3">Educational Details</h4>
-                                                <div className="space-y-2">
-                                                    <div className="flex">
-                                                        <span className="text-gray-600 w-32">Class:</span>
-                                                        <span className="font-medium">{user.form?.educationLevel}</span>
-                                                    </div>
-                                                    {user.form?.stream && (
+                                                {/* Educational Details */}
+                                                <div>
+                                                    <h4 className="font-medium text-gray-700 mb-3">Educational Details</h4>
+                                                    <div className="space-y-2">
                                                         <div className="flex">
-                                                            <span className="text-gray-600 w-32">Stream:</span>
-                                                            <span className="font-medium">{user.form?.stream}</span>
+                                                            <span className="text-gray-600 w-32">Class:</span>
+                                                            <span className="font-medium">{user.form?.educationLevel}</span>
                                                         </div>
-                                                    )}
-                                                    <div className="flex">
-                                                        <span className="text-gray-600 w-32">Percentage:</span>
-                                                        <span className="font-medium">{user.form?.percentage}%</span>
-                                                    </div>
-                                                    <div className="flex">
-                                                        <span className="text-gray-600 w-32">Extracurricular:</span>
-                                                        <span className="font-medium">{user.form?.extracurricular}</span>
-                                                    </div>
-                                                    {user.form?.hasJob && (
+                                                        {user.form?.stream && (
+                                                            <div className="flex">
+                                                                <span className="text-gray-600 w-32">Stream:</span>
+                                                                <span className="font-medium">{user.form?.stream}</span>
+                                                            </div>
+                                                        )}
                                                         <div className="flex">
-                                                            <span className="text-gray-600 w-32">Job Details:</span>
-                                                            <span className="font-medium">{user.form?.jobDetails}</span>
+                                                            <span className="text-gray-600 w-32">Percentage:</span>
+                                                            <span className="font-medium">{user.form?.percentage}%</span>
                                                         </div>
-                                                    )}
+                                                        <div className="flex">
+                                                            <span className="text-gray-600 w-32">Extracurricular:</span>
+                                                            <span className="font-medium">{user.form?.extracurricular}</span>
+                                                        </div>
+                                                        {user.form?.hasJob && (
+                                                            <div className="flex">
+                                                                <span className="text-gray-600 w-32">Job Details:</span>
+                                                                <span className="font-medium">{user.form?.jobDetails}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        )}
 
                                         {/* Documents */}
-                                        <div className="mt-6">
-                                            <h4 className="font-medium text-gray-700 mb-3">Documents</h4>
-                                            <div className="flex space-x-4">
-                                                <a
-                                                    href={user.form?.marksheet}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="flex items-center px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-                                                >
-                                                    <FiEye className="mr-2" /> View Marksheet
-                                                </a>
-                                                {user.form?.certificate && (
+                                        {deleteConfirm !== user._id && (
+                                            <div className="mt-6">
+                                                <h4 className="font-medium text-gray-700 mb-3">Documents</h4>
+                                                <div className="flex space-x-4">
                                                     <a
-                                                        href={user.form?.certificate}
+                                                        href={user.form?.marksheet}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="flex items-center px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                                                        className="flex items-center px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
                                                     >
-                                                        <FiEye className="mr-2" /> View Certificate
+                                                        <FiEye className="mr-2" /> View Marksheet
                                                     </a>
-                                                )}
+                                                    {user.form?.certificate && (
+                                                        <a
+                                                            href={user.form?.certificate}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="flex items-center px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                                                        >
+                                                            <FiEye className="mr-2" /> View Certificate
+                                                        </a>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
 
                                         {/* Action Buttons */}
-                                        {user.form?.status === 'pending' && (
+                                        {deleteConfirm !== user._id && (
                                             <div className="mt-6 pt-4 border-t border-gray-200 flex space-x-4">
+                                                {user.form?.status === 'pending' && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleApprove(user._id)}
+                                                            className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                                                        >
+                                                            <FiCheckCircle className="mr-2" /> Approve
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleReject(user._id)}
+                                                            className="flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                                                        >
+                                                            <FiXCircle className="mr-2" /> Reject
+                                                        </button>
+                                                    </>
+                                                )}
+                                                
+                                                {/* Delete Button - Always visible */}
                                                 <button
-                                                    onClick={() => handleApprove(user._id)}
-                                                    className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                                                    onClick={() => setDeleteConfirm(user._id)}
+                                                    className="flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors ml-auto"
                                                 >
-                                                    <FiCheckCircle className="mr-2" /> Approve
-                                                </button>
-                                                <button
-                                                    onClick={() => handleReject(user._id)}
-                                                    className="flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                                                >
-                                                    <FiXCircle className="mr-2" /> Reject
+                                                    <FiTrash2 className="mr-2" /> Delete
                                                 </button>
                                             </div>
                                         )}
 
                                         {/* Status Message */}
-                                        {user.form?.status !== 'pending' && (
+                                        {deleteConfirm !== user._id && user.form?.status !== 'pending' && (
                                             <div className={`mt-4 p-3 rounded-lg ${user.form?.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                                 This form has been <span className="font-medium">{user.form?.status}</span>.
                                             </div>
@@ -393,4 +487,5 @@ const AdminDashboard = () => {
         </div>
     );
 };
+
 

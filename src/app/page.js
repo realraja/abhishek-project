@@ -53,9 +53,9 @@ const HomePage = () => {
               <p className="text-gray-600 mb-6 flex-grow">
                 Pay your membership fees, donations, or event registration payments.
               </p>
-              <button className="flex items-center justify-center w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+              <Link href={'/make-payment'} className="flex items-center justify-center w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
                 Proceed <FiArrowRight className="ml-2" />
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -72,9 +72,9 @@ const HomePage = () => {
               <p className="text-gray-600 mb-6 flex-grow">
                 Update your profile, change password, and manage notification preferences.
               </p>
-              <button className="flex items-center justify-center w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
+              <Link href={'settings'} className="flex items-center justify-center w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
                 Proceed <FiArrowRight className="ml-2" />
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -83,7 +83,7 @@ const HomePage = () => {
         <div className="mt-16 bg-white rounded-xl shadow-lg p-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Need Help?</h2>
           <p className="text-gray-600 text-center">
-            Contact our support team at support@example.com or call us at +91 XXXXX XXXXX
+            Contact our Development team at realllraja@gmail.com or call us at +91 8005760975
           </p>
         </div>
       </div>
